@@ -66,7 +66,8 @@ else:
     if json_last != None:
         firsttime               = False
         jloads                  = json.loads(json_last)
-        pprint.pprint(jloads)
+        #pprint.pprint(jloads)
+        print("hget found", key_json, str(int(meta_info['minuteofday']) - 1))
    
     #epoch_dbfile = os.path.getmtime(DBFILE)
     epoch_diff              = epoch_time - float(epoch_db_last)

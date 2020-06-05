@@ -102,6 +102,7 @@ def remove_prefix(text, prefix):
 def namespace_del(s):
     return remove_prefix(s, NAMESPACE)
 
+pidpername= {}
 
 # Iterate over all running process
 for proc in psutil.process_iter():
@@ -119,6 +120,8 @@ for proc in psutil.process_iter():
             cmdline4 =      cmdline3[0].split('=')
             instance =      cmdline4[1]
             cputime_sum =   sum(cputime)
+            pidpername[instance] = pid
+        
 
             cputime_diff =  None
             pid_unicode =   unicode(pid)
@@ -140,6 +143,7 @@ for proc in psutil.process_iter():
                 'instance':         instance,
                 'cputime_diff':     cputime_diff,
                 'cputime_vcpu':     cputime_vcpu,
+                'libvirtdata':      {}
             }
 
             #print(proc_info)
@@ -150,62 +154,65 @@ for proc in psutil.process_iter():
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
         pass
 
-vmdata = {}
 
 # Interate over all libvirt vms
 for pid in kvm_procs:
     libvirtdata = {}
 
-    libvirtfile = LIBVIRTDIR + str(kvm_procs[pid]['instance']) + ".xml"
-
-    if os.path.exists(libvirtfile):
-
-        tree = ET.parse(libvirtfile)
-
-        root = tree.getroot()
-
-        for el in root.iter('uuid'):
-            libvirtdata['uuid'] = el.text
-            #print libvirtdata
-            #for el2 in el:
-            #    print(el2)
-
-        for el in root:
-            if el.tag == "metadata":
-                for el2 in el:
-                    if el2.tag == namespace_add("instance"):
-                        for el3 in el2:
-                            tag = namespace_del(el3.tag)
-                            if tag == "flavor":
-                                if "name" in el3.attrib:
-                                    flavor_name = el3.attrib["name"].strip()
-                                    libvirtdata['flavor_name'] = flavor_name
-                                for el4 in el3:
-                                    tag = namespace_del(el4.tag)
-                                    libvirtdata[tag] = el4.text
-                            elif tag == "owner":
-                                for el4 in el3:
-                                    tag = namespace_del(el4.tag)
-
-                                    if "uuid" in el4.attrib:
-                                        uuid = el4.attrib["uuid"]
-                                        libvirtdata[tag] = uuid
-
-        #for el2 in tree.findall("metadata"):
-        #    print(el2.text)
-
-        #tree = etree.parse(libvirtfile)
-        #root = etree.Element("uuid")
-        #for element in root.iter():
-        #    print("%s - %s" % (element.tag, element.text)) 
-
-    #print(libvirtdata)
-    if len(libvirtdata) > 0:
-        vmdata[uuid] = libvirtdata
+    if pid in pidpername:
+        instance = pidpername[pid]
 
 
+        libvirtfile = LIBVIRTDIR + str(kvm_procs[pid]['instance']) + ".xml"
 
-json_data = {'sys_info': sys_info, 'meta_info': meta_info, 'kvm_procs': kvm_procs, 'vmdata': vmdata}
+        if os.path.exists(libvirtfile):
+
+            tree = ET.parse(libvirtfile)
+
+            root = tree.getroot()
+
+            for el in root.iter('uuid'):
+                libvirtdata['uuid'] = el.text
+                #print libvirtdata
+                #for el2 in el:
+                #    print(el2)
+
+            for el in root:
+                if el.tag == "metadata":
+                    for el2 in el:
+                        if el2.tag == namespace_add("instance"):
+                            for el3 in el2:
+                                tag = namespace_del(el3.tag)
+                                if tag == "flavor":
+                                    if "name" in el3.attrib:
+                                        flavor_name = el3.attrib["name"].strip()
+                                        libvirtdata['flavor_name'] = flavor_name
+                                    for el4 in el3:
+                                        tag = namespace_del(el4.tag)
+                                        libvirtdata[tag] = el4.text
+                                elif tag == "owner":
+                                    for el4 in el3:
+                                        tag = namespace_del(el4.tag)
+
+                                        if "uuid" in el4.attrib:
+                                            uuid = el4.attrib["uuid"]
+                                            libvirtdata[tag] = uuid
+
+            #for el2 in tree.findall("metadata"):
+            #    print(el2.text)
+
+            #tree = etree.parse(libvirtfile)
+            #root = etree.Element("uuid")
+            #for element in root.iter():
+            #    print("%s - %s" % (element.tag, element.text)) 
+
+        #print(libvirtdata)
+        if len(libvirtdata) > 0:
+            kvm_procs[pid][libvirtdata] = libvirtdata
+
+
+
+json_data = {'sys_info': sys_info, 'meta_info': meta_info, 'kvm_procs': kvm_procs}
 
 
 

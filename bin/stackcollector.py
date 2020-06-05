@@ -150,7 +150,7 @@ for proc in psutil.process_iter():
     except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
         pass
 
-
+vmdata = {}
 
 # Interate over all libvirt vms
 for pid in kvm_procs:
@@ -200,10 +200,12 @@ for pid in kvm_procs:
         #    print("%s - %s" % (element.tag, element.text)) 
 
     #print(libvirtdata)
+    if len(libvirtdata) > 0:
+        vmdata[uuid] = libvirtdata
 
 
 
-json_data = {'sys_info': sys_info, 'meta_info': meta_info, 'kvm_procs': kvm_procs, 'libvirt_data': libvirtdata}
+json_data = {'sys_info': sys_info, 'meta_info': meta_info, 'kvm_procs': kvm_procs, 'vmdata': vmdata}
 
 
 

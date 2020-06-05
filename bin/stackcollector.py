@@ -40,6 +40,7 @@ meta_info['hostname']       = socket.gethostname()
 
 now = datetime.datetime.now()
 meta_info['minuteofday']    = now.hour * 60 + now.minute
+meta_info['dayofmonth']     = now.day
 
 
 epoch_db_last               = r.hget('hosts.db_time', meta_info['hostname'])
@@ -61,7 +62,6 @@ if epoch_db_last == None or minutes_since_boot < 10:
 
 
 else:
-
     json_last                    = r.hget(key_json, str(int(meta_info['minuteofday']) - 1))
     if json_last != None:
         firsttime               = False
@@ -125,9 +125,9 @@ for proc in psutil.process_iter():
             cputime_vcpu =  None
 
             # if not first time
-            if jloads != None and pid_unicode in jloads:
-               cputime_diff         = float(cputime_sum) - float(jloads[pid_unicode]['cputime'])
-               cputime_vcpu         = float(cputime_diff / epoch_diff)
+            if jloads != None and pid_unicode in jloads['kvm_procs']:
+                cputime_diff         = float(cputime_sum) - float(jloads['kvm_procs'][pid_unicode]['cputime'])
+                cputime_vcpu         = float(cputime_diff / epoch_diff)
 
                 
 

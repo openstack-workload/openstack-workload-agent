@@ -159,14 +159,16 @@ for pid in kvm_procs:
     libvirtfile = LIBVIRTDIR + str(kvm_procs[pid]['instance']) + ".xml"
 
     if os.path.exists(libvirtfile):
+
         tree = ET.parse(libvirtfile)
 
         root = tree.getroot()
-    
+
         for el in root.iter('uuid'):
             libvirtdata['uuid'] = el.text
-            for el2 in el:
-                print(el2)
+            #print libvirtdata
+            #for el2 in el:
+            #    print(el2)
 
         for el in root:
             if el.tag == "metadata":
@@ -201,7 +203,7 @@ for pid in kvm_procs:
 
 
 
-json_data = {'sys_info': sys_info, 'meta_info': meta_info, 'kvm_procs': kvm_procs}
+json_data = {'sys_info': sys_info, 'meta_info': meta_info, 'kvm_procs': kvm_procs, 'libvirt_data': libvirtdata}
 
 
 
